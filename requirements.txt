@@ -1,0 +1,16 @@
+langchain
+langchain-core
+langchain-community
+nano-graphrag
+networkx
+requests
+beautifulsoup4
+markdownify
+tqdm
+numpy
+pydantic
+chromadb
+langchain-ollama
+python-dotenv
+openai-whisper
+nltk

@@ -1,29 +1,47 @@
-# ERICA Graph RAG Notebooks
+# ERICA — Graph RAG AI Tutor
 
 NYU Artificial Intelligence, Fall 2025
 
-Builds a knowledge graph of AI/ML concepts from the course website, for use in a graph-based
-retrieval-augmented generation (Graph RAG) tutor.
+ERICA is an AI tutor for the course that answers questions using a knowledge graph of AI/ML
+concepts built from the course website. It retrieves the concepts most relevant to a question,
+pulls in related and prerequisite concepts from the graph, and has a local LLM answer from
+that context. It also draws the subgraph used to answer each question.
 
-## Pipeline
+## How it works
 
-1. **`01_scrape_data.ipynb`** — crawls the course site (pantelis.github.io), saves the links to
-   `raw_data/links.json`, and scrapes each page's text into `scraped_content.txt`.
-2. **`02_build_graph.ipynb`** — chunks the scraped text, uses a local LLM (Ollama, `qwen2.5:7b`)
-   to extract concepts (name, definition, aliases, difficulty), embeds them with
-   `all-MiniLM-L6-v2`, links related concepts by cosine similarity, asks the LLM to infer
-   prerequisite edges, and saves the resulting NetworkX graph.
+1. **Scrape** — the course site is crawled and its pages saved as text
+   (`course_scraper.py`, `erica_graph_rag_notebooks/01_scrape_data.ipynb`).
+2. **Build the knowledge graph** — text is chunked; a local LLM (Ollama, `qwen2.5:7b`) extracts
+   concepts with definitions, aliases and difficulty; concepts are embedded with
+   `all-MiniLM-L6-v2`, linked by cosine similarity, and given LLM-inferred prerequisite edges
+   (`erica_graph_rag_notebooks/02_build_graph.ipynb`).
+3. **Answer** — `app1.py` (Flask) embeds the question, retrieves the top matching concept nodes,
+   builds a prompt from them and their neighbours, queries the LLM, and renders the answer plus
+   a picture of the query subgraph (`static/query_graph.png`).
 
-## Outputs
+`full_code_new.py` is an alternative end-to-end pipeline that adds a Chroma vector store
+alongside the graph (GraphRAG + RAG).
 
-| File | Contents |
+## Layout
+
+| Path | Contents |
 | --- | --- |
-| `knowledge_graph1.pkl` | Final knowledge graph (NetworkX `DiGraph`) |
-| `knowledge_graph.pkl`, `knowledge_graph - Copy.pkl` | Earlier graph builds |
-| `knowledge_graph.gpickle`, `dummy_knowledge_graph.gpickle` | Test graphs from the prototype section |
+| `app1.py` | Flask app (main entry point); `app.py` is an earlier version |
+| `templates/`, `static/` | Front-end pages and generated graph images |
+| `erica_graph_rag_notebooks/` | Scraping + knowledge-graph notebooks and saved graphs |
+| `full_code*.py`, `full_code.ipynb`, `main1.py`, `run_all.py` | End-to-end pipeline iterations |
+| `rag_pipeline.py`, `build_vector_db.py`, `view_vector_db.py` | Vector-store RAG components |
+| `data/kg_course.json`, `artifacts/graph.pkl` | Saved knowledge graph data |
+| `dockerfile`, `docker-compose.yml` | Container setup (app + ChromaDB) |
+| `*_Outputs.pdf`, `Q*_OP*.jpg`, `QA*_Terminal_OP*.jpg` | Example answers and outputs |
 
 ## Running
 
-Requires a local [Ollama](https://ollama.com) server with `qwen2.5:7b`, plus
-`requests beautifulsoup4 sentence-transformers networkx numpy ollama pandas`.
-`scraped_content.txt` is not included; run `01_scrape_data.ipynb` to regenerate it.
+1. Install and start [Ollama](https://ollama.com), then `ollama pull qwen2.5:7b`.
+2. `pip install -r requirements.txt flask sentence-transformers ollama matplotlib`
+   and install [nano-graphrag](https://github.com/gusye1234/nano-graphrag).
+3. `python app1.py` and open http://localhost:5000 — or `docker compose up`.
+
+Scraped course pages, intermediate chunks and the vector database are not included; the
+scraping and pipeline scripts regenerate them. Scrapers that need a logged-in session read it
+from a local `.env` file, which is never committed.
