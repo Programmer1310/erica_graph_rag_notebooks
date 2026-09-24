@@ -33,7 +33,7 @@ alongside the graph (GraphRAG + RAG).
 | `rag_pipeline.py`, `build_vector_db.py`, `view_vector_db.py` | Vector-store RAG components |
 | `data/kg_course.json`, `artifacts/graph.pkl` | Saved knowledge graph data |
 | `dockerfile`, `docker-compose.yml` | Container setup (app + ChromaDB) |
-| `*_Outputs.pdf`, `Q*_OP*.jpg`, `QA*_Terminal_OP*.jpg` | Example answers and outputs |
+| `*_Outputs.pdf`, `Q1_OP1.jpg`, `QA1_Terminal_OP1.jpg` | Example answers and outputs |
 
 ## Running
 
